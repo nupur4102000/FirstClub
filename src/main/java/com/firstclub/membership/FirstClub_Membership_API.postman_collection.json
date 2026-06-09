@@ -1,0 +1,169 @@
+{
+	"info": {
+		"_postman_id": "fc-membership-system-api",
+		"name": "FirstClub Membership Program API",
+		"description": "Production-grade functional backend API testing collection for the FirstClub SDE-1 Membership Program assignment submission.",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "1. Fetch Available Plans",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:8080/api/v1/membership/plans",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"api",
+						"v1",
+						"membership",
+						"plans"
+					]
+				},
+				"description": "Retrieves all pre-seeded membership plans (Monthly, Quarterly, Yearly) from the database."
+			},
+			"response": []
+		},
+		{
+			"name": "2. Subscribe to Plan (Evaluates Tier Dynamically)",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"userId\": \"user_firstclub_101\",\n    \"monthlyOrderCount\": 15,\n    \"monthlyOrderValue\": 2500.0,\n    \"cohort\": \"REGULAR\"\n}"
+				},
+				"url": {
+					"raw": "http://localhost:8080/api/v1/membership/subscribe?userId=user_firstclub_101&planId=P-MON",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"api",
+						"v1",
+						"membership",
+						"subscribe"
+					],
+					"query": [
+						{
+							"key": "userId",
+							"value": "user_firstclub_101"
+						},
+						{
+							"key": "planId",
+							"value": "P-MON"
+						}
+					]
+				},
+				"description": "Subscribes a user to a plan. The Strategy Engine dynamically computes the best Tier (Silver/Gold/Platinum) based on transactional context attributes."
+			},
+			"response": []
+		},
+		{
+			"name": "3. Track Active Membership Status",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:8080/api/v1/membership/track/user_firstclub_101",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"api",
+						"v1",
+						"membership",
+						"track",
+						"user_firstclub_101"
+					]
+				},
+				"description": "Tracks the real-time status, expiry metadata, and assigned tier of a user's active membership."
+			},
+			"response": []
+		},
+		{
+			"name": "4. Mid-Cycle Tier Sync (Upgrade/Downgrade)",
+			"request": {
+				"method": "PUT",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"userId\": \"user_firstclub_101\",\n    \"monthlyOrderCount\": 25,\n    \"monthlyOrderValue\": 6500.0,\n    \"cohort\": \"REGULAR\"\n}"
+				},
+				"url": {
+					"raw": "http://localhost:8080/api/v1/membership/tier/sync?userId=user_firstclub_101",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"api",
+						"v1",
+						"membership",
+						"tier",
+						"sync"
+					],
+					"query": [
+						{
+							"key": "userId",
+							"value": "user_firstclub_101"
+						}
+					]
+				},
+				"description": "Executes mid-cycle rules evaluation. If user parameters increase (e.g. order value over 5000), it transitions them to a higher tier instantly."
+			},
+			"response": []
+		},
+		{
+			"name": "5. Cancel Active Subscription",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:8080/api/v1/membership/cancel?userId=user_firstclub_101",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"api",
+						"v1",
+						"membership",
+						"cancel"
+					],
+					"query": [
+						{
+							"key": "userId",
+							"value": "user_firstclub_101"
+						}
+					]
+				},
+				"description": "Graciously alters a user's current subscription lifecycle phase to CANCELLED state using safe optimistic concurrency locking primitives."
+			},
+			"response": []
+		}
+	]
+}
