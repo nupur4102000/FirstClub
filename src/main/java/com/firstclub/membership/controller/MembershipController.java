@@ -2,6 +2,7 @@ package com.firstclub.membership.controller;
 
 import java.util.List;
 
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -29,26 +30,48 @@ public class MembershipController {
 
     @GetMapping("/plans")
     public ResponseEntity<List<MembershipPlan>> getPlans() {
-        return ResponseEntity.ok(service.getAllPlans());
+        try {
+            List<MembershipPlan> plans = service.getAllPlans();
+            return ResponseEntity.ok(plans);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
     }
 
     @PostMapping("/subscribe")
-    public ResponseEntity<UserSubscription> subscribe(@RequestParam String userId, 
-                                                      @RequestParam String planId, 
-                                                      @RequestBody UserContextDto context) {
-        return ResponseEntity.ok(service.subscribe(userId, planId, context));
+    public ResponseEntity<Object> subscribe(@RequestParam String userId, 
+                                            @RequestParam String planId, 
+                                            @RequestBody UserContextDto context) {
+        try {
+            UserSubscription sub = service.subscribe(userId, planId, context);
+            return ResponseEntity.ok(sub);
+        } catch (Exception e) {
+            // Catches "Active subscription already exists" or missing plans
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
+        }
     }
 
     @PutMapping("/tier/sync")
-    public ResponseEntity<UserSubscription> updateTier(@RequestParam String userId, 
-                                                       @RequestBody UserContextDto context) {
-        return ResponseEntity.ok(service.updateTier(userId, context));
+    public ResponseEntity<Object> updateTier(@RequestParam String userId, 
+                                             @RequestBody UserContextDto context) {
+        try {
+            UserSubscription updatedSub = service.updateTier(userId, context);
+            return ResponseEntity.ok(updatedSub);
+        } catch (Exception e) {
+            // Catches "No active subscription for user" and returns a 404 Not Found
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
+        }
     }
 
     @PostMapping("/cancel")
-    public ResponseEntity<Void> cancel(@RequestParam String userId) {
-        service.cancelSubscription(userId);
-        return ResponseEntity.noContent().build();
+    public ResponseEntity<Object> cancel(@RequestParam String userId) {
+        try {
+            service.cancelSubscription(userId);
+            return ResponseEntity.ok("Subscription cancelled successfully.");
+        } catch (Exception e) {
+            // Catches "No active subscription found" and returns a 404 instead of a server crash
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
+        }
     }
 
     @GetMapping("/track/{userId}")
